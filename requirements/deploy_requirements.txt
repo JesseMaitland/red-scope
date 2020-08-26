@@ -19,7 +19,6 @@ pyparsing==2.4.7
 python-dotenv==0.14.0
 PyYAML==5.3.1
 readme-renderer==26.0
--e git+git@github.com:JesseMaitland/red-scope.git@4625d578573145808a9a3bafc483e28137b68af7#egg=redscope
 requests==2.24.0
 requests-toolbelt==0.9.1
 rfc3986==1.4.0

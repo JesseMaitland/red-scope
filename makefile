@@ -11,7 +11,7 @@ export TEST_DIR = tests
 #              Commands for Python environment              #
 #############################################################
 
-lib_init:
+lib-init:
 	if [[ -d ./venv ]]; then rm -rf venv; fi \
 	&& python3.6 -m venv venv \
 	&& . venv/bin/activate \
@@ -19,7 +19,7 @@ lib_init:
 	&& pip install -r ${LIB_REQ}
 
 
-deployment_init:
+deployment-init:
 	if [[ -d ./venv ]]; then rm -rf venv; fi \
 	&& python3.6 -m venv venv \
 	&& . venv/bin/activate \
