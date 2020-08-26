@@ -4,7 +4,7 @@ from pathlib import Path
 
 def main():
     try:
-        run_entry_point(Path(__file__).absolute().parent / f"redscope.yml")
+        run_entry_point(Path(__file__).absolute().parent / "redscope.yml")
     except FileNotFoundError:
         run_entry_point()
 

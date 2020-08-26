@@ -3,7 +3,7 @@
 export REQ_DIR = requirements
 export LIB_REQ = ${REQ_DIR}/lib_requirements.txt
 export DEP_REQ = ${REQ_DIR}/deploy_requirements.txt
-export PROJECT_DIR = rsterm
+export PROJECT_DIR = redscope
 export TEST_DIR = tests
 
 
@@ -27,13 +27,13 @@ deployment_init:
 	&& pip install -r ${DEP_REQ}
 
 
-req:
+lib-req:
 	rm -f ${LIB_REQ} \
 	&& . venv/bin/activate \
 	&& pip freeze | grep 'flake8\|mccabe\|pycodestyle\|zipp\|pyflakes\|importlib-metadata\|rsterm' -v > ${LIB_REQ}
 
 
-depreq:
+dep-req:
 	rm -f ${DEP_REQ} \
 	&& . venv/bin/activate \
 	&& pip freeze | grep 'rsterm' -v > ${DEP_REQ}

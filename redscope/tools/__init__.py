@@ -1,14 +1,9 @@
-import os
 import psycopg2
+from pathlib import Path
+from rsterm.configs import RsTermConfig
 
 
-def db_connection_exists(db_connection_string: str, connection_name: str) -> bool:
-    if not db_connection_string:
-        raise EnvironmentError(f"no connection string found in .env for {connection_name}")
-    return True
-
-
-def get_db_connection(connection_name: str = '') -> psycopg2.connect:
-    db_connection_string = os.getenv(connection_name) or os.getenv(DEFAULT_DB_URL)
-    if db_connection_exists(db_connection_string, connection_name):
-        return psycopg2.connect(db_connection_string)
+def get_redscope_connection() -> psycopg2.connect:
+    redscope_config_path = Path(__file__).absolute().parent.parent / "redscope.yml"
+    config = RsTermConfig.parse_config(redscope_config_path)
+    return config.get_db_connection_('redscope')

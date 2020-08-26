@@ -24,7 +24,7 @@ def readme():
 
 
 setup(
-    name='redscope',
+    name='red-scope',
     version=VERSION,
     author='Jesse Maitland',
     discription='A library for introspecting redshift schemas',

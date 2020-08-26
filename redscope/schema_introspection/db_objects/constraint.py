@@ -15,19 +15,19 @@ class Constraint(DDL):
 
     @property
     def create(self) -> str:
-        return f""
+        return ""
 
     @property
     def create_if_not_exist(self) -> str:
-        return f""
+        return ""
 
     @property
     def drop(self) -> str:
-        return f""
+        return ""
 
     @property
     def drop_if_exist(self) -> str:
-        return f""
+        return ""
 
     @property
     def ddl(self) -> str:

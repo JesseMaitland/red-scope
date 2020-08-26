@@ -70,7 +70,7 @@ class TableFormatter(DDLFormatter):
 
     @staticmethod
     def format_tabs(table_lines) -> List[str]:
-        max_length = max([len(l.split(' ')[0]) for l in table_lines])
+        max_length = max([len(table_line.split(' ')[0]) for table_line in table_lines])
 
         new_lines = []
         for line in table_lines:
