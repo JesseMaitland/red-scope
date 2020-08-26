@@ -3,7 +3,7 @@ import sys
 from setuptools import setup, find_packages
 from setuptools.command.install import install
 
-VERSION = '0.0.3'
+VERSION = '0.0.4'
 
 
 class VerifyVersionCommand(install):
@@ -34,7 +34,8 @@ setup(
         'PTable',
         'psycopg2-binary',
         'python-dotenv',
-        'sqlparse'
+        'sqlparse',
+        'rsterm'
     ],
     license='MIT',
     packages=find_packages(exclude=('tests*', 'venv')),
