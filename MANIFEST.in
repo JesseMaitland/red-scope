@@ -1,0 +1,2 @@
+include redscope/database/queries/introspection/*.sql
+include redscope/redscope.yml
