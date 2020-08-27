@@ -34,7 +34,8 @@ class IntroDb(EntryPoint):
 
     def run(self) -> None:
         introspection_function = self.lookup_function()
-        db_connection = self.rsterm.get_db_connection_('redscope')
+        db_connection = self.rsterm.get_db_connection('redscope')
+
         db_catalog: DbCatalog = introspection_function(db_connection)
 
         file_paths = FilePaths()

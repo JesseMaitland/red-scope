@@ -3,7 +3,7 @@ import sys
 from setuptools import setup, find_packages
 from setuptools.command.install import install
 
-VERSION = '0.0.4'
+VERSION = '0.0.5'
 
 
 class VerifyVersionCommand(install):
@@ -31,9 +31,7 @@ setup(
     include_package_data=True,
     long_description=readme(),
     install_requires=[
-        'PTable',
         'psycopg2-binary',
-        'python-dotenv',
         'sqlparse',
         'rsterm'
     ],
