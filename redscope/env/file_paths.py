@@ -15,9 +15,9 @@ class FilePaths:
         path.touch(exist_ok=True)
         path.write_text(ddl.create_if_not_exist)
 
-    def save_files(self, db_catalog: DbCatalog, *db_object_names):
+    def save_files(self, db_catalog: DbCatalog, verbose: bool = True):
 
-        for name in db_object_names:
+        for name in db_catalog.file_object_names:
             ddls = db_catalog.get_db_objects(name)
 
             for ddl in ddls:
@@ -38,7 +38,7 @@ class FilePaths:
                     path = path / name
                     self.make_dir_and_file(ddl, path)
 
-                elif name in ['users', 'usergroups']:
+                elif name in ['users', 'membership']:
                     path = self.dir_context.get_dir('permissions')
                     path = path / 'users' / ddl.name
                     self.make_dir_and_file(ddl, path)

@@ -4,7 +4,7 @@ from redscope.schema_introspection.db_objects.usergroup import UserGroup
 from redscope.schema_introspection.formatters.base_formatter import DDLFormatter
 
 
-class UsergroupFormatter(DDLFormatter):
+class MembershipFormatter(DDLFormatter):
 
     def __init__(self, raw_ddl: Tuple[str] = None):
         self.raw_ddl = raw_ddl or ()

@@ -1,26 +1,34 @@
 from importlib import import_module
 from pathlib import Path
-from typing import Tuple
+from typing import Tuple, List
+from psycopg2.extensions import connection
 from redscope.database.models import IntrospectionQueries
 from redscope.schema_introspection.formatters.base_formatter import DDLFormatter
 from redscope.schema_introspection.db_objects.db_catalog import DbCatalog
+from redscope.schema_introspection.db_objects.ddl import DDL
 
 
 class DbIntrospection:
 
-    allowed_db_objects = ['groups', 'schemas', 'users', 'permissions', 'tables', 'views', 'constraints', 'usergroups']
+    allowed_db_objects = ['groups', 'schemas', 'users', 'tables', 'views', 'constraints', 'membership']
 
-    def __init__(self, introspection_queries: IntrospectionQueries, db_object: str):
-
-        if db_object not in self.allowed_db_objects:
-            raise ValueError(f'{db_object} is not a valid name. Allowed values are {self.allowed_db_objects}')
+    def __init__(self, introspection_queries: IntrospectionQueries, db_object: str = ''):
 
         self.introspection_queries = introspection_queries
+        self.db_object = None
+        self.formatter_path = None
+
+        if db_object:
+            self.set_introspection_path(db_object)
+
+    def set_introspection_path(self, db_object: str):
+        self.validate_db_object(db_object)
         self.db_object = db_object
         self.formatter_path = Path("redscope/schema_introspection/formatters") / db_object
         self.formatter_path = self.formatter_path.as_posix().replace('/', '.')
 
-    def call(self):
+    def __call__(self, db_object: str) -> List[DDL]:
+        self.set_introspection_path(db_object)
         formatter = self._import_formatter()
         raw_ddl = self._execute_query()
         return formatter.format(raw_ddl)
@@ -33,74 +41,47 @@ class DbIntrospection:
         formatter = getattr(formatter_module, f"{self.db_object.capitalize().rstrip('s')}Formatter")
         return formatter()
 
+    def validate_db_object(self, db_object: str):
+        if db_object not in self.allowed_db_objects:
+            raise ValueError(f'{db_object} is not a valid name. Allowed values are {self.allowed_db_objects}')
 
-def introspect_schemas(db_connection) -> DbCatalog:
+
+def introspect_redshift(db_connection: connection, object_type: str = None, verbose: bool = False) -> DbCatalog:
+
+    if object_type is None:
+        objects_to_introspect = DbIntrospection.allowed_db_objects.copy()
+    else:
+        objects_to_introspect = [object_type]
+
+    # we don't want to introspect constraints on their own, just remove the value
+    # and if the list is empty afterward, we know they tried to introspect constraints
+    # without the context of a corresponding table, which doesn't make sense really.
+    objects_to_introspect.remove('constraints')
+
+    if not objects_to_introspect:
+        raise ValueError("constraints are not allowed to be introspected without reference to a table.")
+
     queries = IntrospectionQueries(db_connection)
-    intro = DbIntrospection(queries, 'schemas')
-    schemas = intro.call()
-    return DbCatalog(schemas=schemas)
+    introspect = DbIntrospection(queries)
+    introspected_objects = {}
 
+    for object_to_introspect in objects_to_introspect:
 
-def introspect_groups(db_connection) -> DbCatalog:
-    queries = IntrospectionQueries(db_connection)
-    intro = DbIntrospection(queries, 'groups')
-    groups = intro.call()
-    return DbCatalog(groups=groups)
+        if verbose:
+            print(f"Introspecting Redshift ........ {object_to_introspect}")
 
+        db_objects = introspect(object_to_introspect)
 
-def introspect_user_groups(db_connection) -> DbCatalog:
-    queries = IntrospectionQueries(db_connection)
-    intro = DbIntrospection(queries, 'usergroups')
-    user_groups = intro.call()
-    return DbCatalog(user_groups=user_groups)
+        # if we are introspecting tables, look up their corresponding constraints
+        # and make the association.
+        if object_to_introspect == 'tables':
+            constraints = introspect('constraints')
 
+            for table in db_objects:
+                for constraint in constraints:
+                    if constraint.schema == table.schema and constraint.table == table.name:
+                        table.add_constraint(constraint)
 
-def introspect_views(db_connection) -> DbCatalog:
-    queries = IntrospectionQueries(db_connection)
-    intro = DbIntrospection(queries, 'views')
-    views = intro.call()
-    return DbCatalog(views=views)
+        introspected_objects[object_to_introspect] = db_objects
 
-
-def introspect_constraints(db_connection) -> DbCatalog:
-    queries = IntrospectionQueries(db_connection)
-    intro = DbIntrospection(queries, 'constraints')
-    constraints = intro.call()
-    return DbCatalog(constraints=constraints)
-
-
-def introspect_tables(db_connection) -> DbCatalog:
-    queries = IntrospectionQueries(db_connection)
-    intro = DbIntrospection(queries, 'tables')
-    tables = intro.call()
-    constraints = introspect_constraints(db_connection)
-
-    for table in tables:
-        for constraint in constraints.constraints:
-
-            if constraint.schema == table.schema and constraint.table == table.name:
-                table.add_constraint(constraint)
-
-    return DbCatalog(tables=tables)
-
-
-def introspect_users(db_connection) -> DbCatalog:
-    queries = IntrospectionQueries(db_connection)
-    intro = DbIntrospection(queries, 'users')
-    users = intro.call()
-    return DbCatalog(users=users)
-
-
-def introspect_db(db_connection) -> DbCatalog:
-    schemas = introspect_schemas(db_connection)
-    groups = introspect_groups(db_connection)
-    views = introspect_views(db_connection)
-    tables = introspect_tables(db_connection)
-    users = introspect_users(db_connection)
-    user_groups = introspect_user_groups(db_connection)
-    return DbCatalog(schemas=schemas.schemas,
-                     groups=groups.groups,
-                     views=views.views,
-                     tables=tables.tables,
-                     users=users.users,
-                     user_groups=user_groups.user_groups)
+    return DbCatalog(**introspected_objects)

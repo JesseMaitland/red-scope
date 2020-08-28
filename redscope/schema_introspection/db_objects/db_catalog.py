@@ -18,7 +18,7 @@ class DbCatalog:
                  tables: List[Table] = None,
                  users: List[User] = None,
                  constraints: List[Constraint] = None,
-                 user_groups: List[UserGroup] = None):
+                 membership: List[UserGroup] = None):
 
         self._schemas = schemas or {}
         self._groups = groups or {}
@@ -26,7 +26,7 @@ class DbCatalog:
         self._tables = tables or {}
         self._users = users or {}
         self._constraints = constraints or {}
-        self._usergroups = user_groups or {}
+        self._membership = membership or {}
 
         self._schemas = {schema.name: schema for schema in self._schemas}
         self._groups = {group.name: group for group in self._groups}
@@ -34,7 +34,7 @@ class DbCatalog:
         self._tables = {table.full_name: table for table in self._tables}
         self._users = {user.name: user for user in self._users}
         self._constraints = {constraint.name: constraint for constraint in self._constraints}
-        self._usergroups = {user_group.name: user_group for user_group in self._usergroups}
+        self._membership = {member.name: member for member in self._membership}
 
     @property
     def schemas(self) -> List[Schema]:
@@ -61,8 +61,12 @@ class DbCatalog:
         return [constraint for constraint in self._constraints.values()]
 
     @property
-    def user_groups(self) -> List[UserGroup]:
-        return [user_group for user_group in self._usergroups.values()]
+    def membership(self) -> List[UserGroup]:
+        return [member for member in self._membership.values()]
+
+    @property
+    def file_object_names(self) -> List[str]:
+        return ['tables', 'schemas', 'views', 'groups', 'membership', 'users']
 
     def get_db_objects(self, db_obj_type: str) -> List[DDL]:
         ddl_objs = getattr(self, f"_{db_obj_type}")

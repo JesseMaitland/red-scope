@@ -3,7 +3,7 @@ import sys
 from setuptools import setup, find_packages
 from setuptools.command.install import install
 
-VERSION = '0.0.5'
+VERSION = '0.0.6'
 
 
 class VerifyVersionCommand(install):
@@ -27,7 +27,7 @@ setup(
     name='red-scope',
     version=VERSION,
     author='Jesse Maitland',
-    discription='A library for introspecting redshift schemas',
+    discription='A library for introspecting redshift objects',
     include_package_data=True,
     long_description=readme(),
     install_requires=[

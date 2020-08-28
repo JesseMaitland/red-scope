@@ -19,7 +19,7 @@ rsterm:
 
   terminal:
     verbs:
-      - intro
+      - introspect
 
     nouns:
-      - db
+      - redshift

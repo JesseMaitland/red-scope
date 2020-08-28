@@ -1,54 +1,33 @@
-from typing import Callable
 from rsterm import EntryPoint
 from redscope.env.file_paths import FilePaths
-from redscope.schema_introspection.db_introspection import \
-    introspect_tables, introspect_schemas, introspect_users, \
-    introspect_constraints, introspect_groups, introspect_user_groups, \
-    introspect_views, introspect_db, DbIntrospection, DbCatalog
+from redscope.schema_introspection.db_introspection import introspect_redshift, DbIntrospection
+
+_allowed_introspection_choices = DbIntrospection.allowed_db_objects.copy()
+_allowed_introspection_choices.remove('constraints')
+_allowed_introspection_choices.append('all')
 
 
-class IntroDb(EntryPoint):
+class IntrospectRedshift(EntryPoint):
 
     entry_point_args = {
-        ('db_object', ): {
-            'help': 'the name of the object you would like to introspect',
-            'choices': DbIntrospection.allowed_db_objects + ['all']
-        },
 
-        ('--save', '-s'): {
-            'help': 'set this flag to save introspected objects to files. All existing files will be overwritten',
-            'action': 'store_true'
+        ('--entity', '-e'): {
+            'help': 'the name of the database object you would like to introspect. Default value is all',
+            'choices': _allowed_introspection_choices,
+            'type': str,
+            'default': 'all'
         }
     }
 
-    function_map = {
-        'tables': introspect_tables,
-        'schemas': introspect_schemas,
-        'users': introspect_users,
-        'constraints': introspect_constraints,
-        'groups': introspect_groups,
-        'views': introspect_views,
-        'usergroups': introspect_user_groups,
-        'all': introspect_db
-    }
-
     def run(self) -> None:
-        introspection_function = self.lookup_function()
+
         db_connection = self.rsterm.get_db_connection('redscope')
 
-        db_catalog: DbCatalog = introspection_function(db_connection)
+        if self.cmd_args.entity == 'all':
+            db_catalog = introspect_redshift(db_connection, verbose=True)
+        else:
+            db_catalog = introspect_redshift(db_connection, self.cmd_args.entity, verbose=True)
 
         file_paths = FilePaths()
-
-        if self.cmd_args.save:
-
-            if self.cmd_args.db_object == 'all':
-                objects_to_save = [key for key in self.function_map.keys() if key != 'all']
-            else:
-                objects_to_save = [self.cmd_args.db_object]
-
-            file_paths.save_files(db_catalog, *objects_to_save)
+        file_paths.save_files(db_catalog)
         exit()
-
-    def lookup_function(self) -> Callable:
-        return self.function_map[self.cmd_args.db_object]
