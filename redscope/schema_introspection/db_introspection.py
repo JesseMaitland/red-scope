@@ -56,7 +56,10 @@ def introspect_redshift(db_connection: connection, object_type: str = None, verb
     # we don't want to introspect constraints on their own, just remove the value
     # and if the list is empty afterward, we know they tried to introspect constraints
     # without the context of a corresponding table, which doesn't make sense really.
-    objects_to_introspect.remove('constraints')
+    try:
+        objects_to_introspect.remove('constraints')
+    except ValueError:
+        pass
 
     if not objects_to_introspect:
         raise ValueError("constraints are not allowed to be introspected without reference to a table.")
