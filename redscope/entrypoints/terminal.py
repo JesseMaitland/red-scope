@@ -31,3 +31,13 @@ class IntrospectRedshift(EntryPoint):
         file_paths = FilePaths()
         file_paths.save_files(db_catalog)
         exit()
+
+
+class PrintTable(EntryPoint):
+
+    def run(self) -> None:
+        db_connection = self.rsterm.get_db_connection('redscope')
+        db_catalog = introspect_redshift(db_connection, 'tables')
+
+        for table in db_catalog.tables:
+            print(table.create_external_table('foo_bar'))

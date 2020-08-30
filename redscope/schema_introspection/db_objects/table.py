@@ -35,7 +35,7 @@ class Table(DDL):
 
     def create_external_table(self, schema: str = None) -> str:
         schema = schema or self.schema
-        return f"CREATE EXTERNAL TABLE IF NOT EXISTS {schema}.{self.name} \n(\n{self.simple_ddl}\n);"
+        return f"CREATE EXTERNAL TABLE IF NOT EXISTS {schema}.{self.name} \n(\n{self.simple_column_list}\n);"
 
     @property
     def drop(self) -> str:
@@ -50,7 +50,7 @@ class Table(DDL):
         return '\n'.join([c.ddl for c in self.constraints])
 
     @property
-    def simple_ddl(self) -> str:
+    def simple_column_list(self) -> str:
         lines_to_keep = []
         ddl_lines = self.ddl.split('\n')
 
@@ -69,7 +69,10 @@ class Table(DDL):
 
         lines_to_keep = [l + ',' if i < len(lines_to_keep) - 1 else l for i, l in enumerate(lines_to_keep)]
         columns = '\n'.join(lines_to_keep)
-        return f"CREATE TABLE IF NOT EXISTS {self.full_name}\n(\n{columns}\n);"
+        return columns
+
+    def get_simple_ddl(self):
+        return f"CREATE TABLE IF NOT EXISTS {self.full_name}\n(\n{self.simple_column_list}\n);"
 
     def add_constraint(self, constraint: Constraint) -> None:
         self.constraints.append(constraint)

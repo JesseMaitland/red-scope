@@ -20,6 +20,8 @@ rsterm:
   terminal:
     verbs:
       - introspect
+      - print
 
     nouns:
       - redshift
+      - table
