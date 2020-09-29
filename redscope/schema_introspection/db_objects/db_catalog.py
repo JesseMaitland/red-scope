@@ -7,8 +7,11 @@ from redscope.schema_introspection.db_objects.table import Table
 from redscope.schema_introspection.db_objects.user import User
 from redscope.schema_introspection.db_objects.constraint import Constraint
 from redscope.schema_introspection.db_objects.usergroup import UserGroup
+from redscope.schema_introspection.db_objects.udf import UDF
+from redscope.schema_introspection.db_objects.ownership import Ownership
 
 
+# TODO: review this approach, object could be simple dictionary?
 class DbCatalog:
 
     def __init__(self,
@@ -18,7 +21,9 @@ class DbCatalog:
                  tables: List[Table] = None,
                  users: List[User] = None,
                  constraints: List[Constraint] = None,
-                 membership: List[UserGroup] = None):
+                 membership: List[UserGroup] = None,
+                 udfs: List[UDF] = None,
+                 ownership: List[Ownership] = None):
 
         self._schemas = schemas or {}
         self._groups = groups or {}
@@ -27,6 +32,8 @@ class DbCatalog:
         self._users = users or {}
         self._constraints = constraints or {}
         self._membership = membership or {}
+        self._udfs = udfs or {}
+        self._ownership = ownership or {}
 
         self._schemas = {schema.name: schema for schema in self._schemas}
         self._groups = {group.name: group for group in self._groups}
@@ -35,6 +42,8 @@ class DbCatalog:
         self._users = {user.name: user for user in self._users}
         self._constraints = {constraint.name: constraint for constraint in self._constraints}
         self._membership = {member.name: member for member in self._membership}
+        self._udfs = {udf.name: udf for udf in self._udfs}
+        self._ownership = {(f"{o.schema}" if o.db_obj_type == 'schema' else f"{o.schema}.{o.name}"): o for o in self._ownership}
 
     @property
     def schemas(self) -> List[Schema]:
@@ -65,8 +74,16 @@ class DbCatalog:
         return [member for member in self._membership.values()]
 
     @property
+    def udfs(self) -> List[UDF]:
+        return [udf for udf in self._udfs.values()]
+
+    @property
+    def ownership(self) -> List[Ownership]:
+        return [ownership for ownership in self._ownership.values()]
+
+    @property
     def file_object_names(self) -> List[str]:
-        return ['tables', 'schemas', 'views', 'groups', 'membership', 'users']
+        return ['tables', 'schemas', 'views', 'groups', 'membership', 'users', 'udfs', 'ownership']
 
     def get_db_objects(self, db_obj_type: str) -> List[DDL]:
         ddl_objs = getattr(self, f"_{db_obj_type}")
@@ -95,3 +112,9 @@ class DbCatalog:
 
     def get_tables_by_schema(self, schema: str) -> Dict[str, Table]:
         return {table.full_name: table for table in self.tables if table.schema == schema}
+
+    def get_udf(self, name: str) -> UDF:
+        return self._udfs[name]
+
+    def get_ownership(self, name: str) -> Ownership:
+        return self._ownership[name]

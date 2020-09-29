@@ -1,6 +1,6 @@
 from importlib import import_module
 from pathlib import Path
-from typing import Tuple, List
+from typing import Tuple, List, Union
 from psycopg2.extensions import connection
 from redscope.database.models import IntrospectionQueries
 from redscope.schema_introspection.formatters.base_formatter import DDLFormatter
@@ -10,7 +10,7 @@ from redscope.schema_introspection.db_objects.ddl import DDL
 
 class DbIntrospection:
 
-    allowed_db_objects = ['groups', 'schemas', 'users', 'tables', 'views', 'constraints', 'membership']
+    allowed_db_objects = ['groups', 'schemas', 'users', 'tables', 'views', 'constraints', 'membership', 'udfs', 'ownership']
 
     def __init__(self, introspection_queries: IntrospectionQueries, db_object: str = ''):
 
@@ -46,12 +46,24 @@ class DbIntrospection:
             raise ValueError(f'{db_object} is not a valid name. Allowed values are {self.allowed_db_objects}')
 
 
-def introspect_redshift(db_connection: connection, object_type: str = None, verbose: bool = False) -> DbCatalog:
+def introspect_redshift(db_connection: connection, object_type: Union[str, List[str]] = None, verbose: bool = False) -> DbCatalog:
+    """
+    Function used to introspect redshift database objects
+    Args:
+        db_connection: psycopg2 connection object to a running instance of redshift.
+        object_type: str or list the type of redshift object to introspect
+        verbose: When True, will print out the introspection steps to the terminal
 
+    Returns: DbCatalog: This is a dictionary like object which contains the requested ddl
+
+    """
     if object_type is None:
         objects_to_introspect = DbIntrospection.allowed_db_objects.copy()
     else:
-        objects_to_introspect = [object_type]
+        if type(object_type) == str:
+            objects_to_introspect = [object_type]
+        else:
+            objects_to_introspect = object_type
 
     # we don't want to introspect constraints on their own, just remove the value
     # and if the list is empty afterward, we know they tried to introspect constraints

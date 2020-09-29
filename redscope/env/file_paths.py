@@ -28,7 +28,7 @@ class FilePaths:
                     path = path / ddl.name
                     self.make_dir_and_file(ddl, path)
 
-                elif name in ['tables', 'views']:
+                elif name in ['tables', 'views', 'udfs', 'ownership']:
                     path = self.dir_context.get_dir('schemas')
                     path = path / ddl.schema / name
                     self.make_dir_and_file(ddl, path)
