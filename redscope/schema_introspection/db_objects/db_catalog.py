@@ -118,3 +118,18 @@ class DbCatalog:
 
     def get_ownership(self, name: str) -> Ownership:
         return self._ownership[name]
+
+    def get_objects_by_schema(self, schema_name: str) -> Dict:
+        db_objs = {}
+        db_obj_names = ['tables', 'views', 'udfs']
+
+        schema = self.get_schema(schema_name)
+        db_objs[schema.name] = {}
+
+        for db_obj_name in db_obj_names:
+            db_objs[schema.name][db_obj_name] = []
+            for dbo in getattr(self, f"_{db_obj_name}").values():
+                if dbo.schema == schema.name:
+                    db_objs[schema.name][db_obj_name].append(dbo)
+
+        return db_objs
